@@ -1,5 +1,7 @@
 # Auto Portable Python Deployer
 
+![License: MIT](https://img.shields.io/github/license/rookiemann/auto-portable-python-deployer) ![Platform: Windows](https://img.shields.io/badge/Platform-Windows%2010%2F11-blue) ![Python: 3.10-3.14](https://img.shields.io/badge/Python-3.10--3.14-green)
+
 A self-bootstrapping tool that generates **fully portable, zero-install Python deployment packages** for Windows. No system Python required. No admin rights. No PATH modifications. Just double-click and go.
 
 The deployer itself is portable — it downloads its own embedded Python runtime on first run, sets up pip and tkinter automatically, then launches a GUI or CLI where you configure and generate deployment packages for your own projects.
