@@ -1,0 +1,151 @@
+@echo off
+setlocal enabledelayedexpansion
+
+echo.
+echo ============================================
+echo   {{PROJECT_NAME}} - Autonomous Installer
+echo ============================================
+echo.
+echo   This script sets up everything from scratch:
+echo   - Embedded Python {{PYTHON_VERSION}} (no system Python needed)
+{{TKINTER_ECHO}}{{GIT_ECHO}}{{FFMPEG_ECHO}}echo   - All Python dependencies
+echo   - Then launches the application
+echo.
+
+set "SCRIPT_DIR=%~dp0"
+set "PYTHON_DIR=%SCRIPT_DIR%python_embedded"
+set "PYTHON_EXE=%PYTHON_DIR%\python.exe"
+
+set "PYTHON_VERSION={{PYTHON_VERSION}}"
+set "PYTHON_URL={{PYTHON_URL}}"
+set "PYTHON_ZIP=%SCRIPT_DIR%python_embedded.zip"
+
+{{GIT_VARS}}{{FFMPEG_VARS}}
+:: ============================================
+:: Step 1: Download Embedded Python
+:: ============================================
+if exist "%PYTHON_EXE%" (
+    echo [OK] Embedded Python already installed.
+    goto :check_pip
+)
+
+echo [STEP] Downloading Python %PYTHON_VERSION% embedded...
+powershell -NoProfile -ExecutionPolicy Bypass -Command ^
+    "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; ^
+     $ProgressPreference = 'SilentlyContinue'; ^
+     Invoke-WebRequest -Uri '%PYTHON_URL%' -OutFile '%PYTHON_ZIP%'"
+
+if not exist "%PYTHON_ZIP%" (
+    echo.
+    echo ERROR: Failed to download Python.
+    echo   - Check your internet connection
+    echo   - URL: %PYTHON_URL%
+    echo.
+    pause
+    exit /b 1
+)
+
+echo [STEP] Extracting Python...
+powershell -NoProfile -ExecutionPolicy Bypass -Command ^
+    "Expand-Archive -Path '%PYTHON_ZIP%' -DestinationPath '%PYTHON_DIR%' -Force"
+
+if not exist "%PYTHON_EXE%" (
+    echo ERROR: Python extraction failed.
+    pause
+    exit /b 1
+)
+
+del "%PYTHON_ZIP%" 2>nul
+
+:: ============================================
+:: Step 2: Configure ._pth for site-packages
+:: ============================================
+echo [STEP] Configuring Python for package installation...
+
+if not exist "%PYTHON_DIR%\Lib\site-packages" (
+    mkdir "%PYTHON_DIR%\Lib\site-packages"
+)
+
+powershell -NoProfile -ExecutionPolicy Bypass -Command ^
+    "$pthFiles = Get-ChildItem '%PYTHON_DIR%\python*._pth'; ^
+     if ($pthFiles.Count -gt 0) { ^
+         $pth = $pthFiles[0]; ^
+         $zipName = (Get-ChildItem '%PYTHON_DIR%\python*.zip' | Select-Object -First 1).Name; ^
+         if (-not $zipName) { $zipName = '{{PTH_ZIP_NAME}}' }; ^
+         $content = @($zipName, '.', 'Lib', 'Lib\site-packages', 'DLLs'{{PTH_EXTRA}}, '', 'import site'); ^
+         $content | Set-Content -Path $pth.FullName -Encoding ASCII; ^
+         Write-Host '   Configured:' $pth.Name ^
+     } else { ^
+         Write-Host 'WARNING: No ._pth file found' ^
+     }"
+
+:: ============================================
+:: Step 3: Bootstrap pip (via get-pip.py)
+:: ============================================
+:check_pip
+"%PYTHON_EXE%" -m pip --version >nul 2>&1
+if %errorlevel% neq 0 (
+    echo [STEP] Downloading get-pip.py...
+    powershell -NoProfile -ExecutionPolicy Bypass -Command ^
+        "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; ^
+         $ProgressPreference = 'SilentlyContinue'; ^
+         Invoke-WebRequest -Uri 'https://bootstrap.pypa.io/get-pip.py' -OutFile '%PYTHON_DIR%\get-pip.py'"
+
+    if not exist "%PYTHON_DIR%\get-pip.py" (
+        echo ERROR: Failed to download get-pip.py.
+        pause
+        exit /b 1
+    )
+
+    echo [STEP] Installing pip...
+    "%PYTHON_EXE%" "%PYTHON_DIR%\get-pip.py"
+    if errorlevel 1 (
+        echo ERROR: Failed to install pip.
+        pause
+        exit /b 1
+    )
+
+    del "%PYTHON_DIR%\get-pip.py" 2>nul
+    "%PYTHON_EXE%" -m pip install --upgrade pip 2>nul
+) else (
+    echo [OK] pip already available.
+)
+
+{{TKINTER_SECTION}}{{GIT_SECTION}}{{FFMPEG_SECTION}}
+:: ============================================
+:: Install requirements
+:: ============================================
+:install_reqs
+echo [STEP] Installing requirements...
+"%PYTHON_EXE%" -m pip install -r "%SCRIPT_DIR%requirements.txt" --quiet 2>nul
+if errorlevel 1 (
+    echo Retrying with verbose output...
+    "%PYTHON_EXE%" -m pip install -r "%SCRIPT_DIR%requirements.txt"
+    if errorlevel 1 (
+        echo ERROR: Failed to install requirements.
+        pause
+        exit /b 1
+    )
+)
+
+:: ============================================
+:: Set up PATH and launch
+:: ============================================
+:setup_path
+{{PATH_SETUP}}
+echo [STEP] Launching {{PROJECT_NAME}}...
+echo.
+echo ============================================
+echo.
+
+cd /d "%SCRIPT_DIR%"
+"%PYTHON_EXE%" "%SCRIPT_DIR%{{ENTRY_POINT}}" %*
+
+if errorlevel 1 (
+    echo.
+    echo The application exited with an error.
+    echo.
+    pause
+)
+
+endlocal

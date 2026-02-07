@@ -1,0 +1,35 @@
+# Embedded Python runtime (auto-downloaded by install.bat)
+python_embedded/
+
+# Generated output packages
+output/
+test_output/
+
+# Temporary installer files
+_tcltk.msi
+_tcltk_extract/
+_ffmpeg_temp/
+python_embedded.zip
+git_portable.zip
+ffmpeg_portable.zip
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# Claude Code
+.claude/
