@@ -31,9 +31,9 @@ if exist "%PYTHON_EXE%" (
 
 echo [STEP] Downloading Python %PYTHON_VERSION% embedded...
 powershell -NoProfile -ExecutionPolicy Bypass -Command ^
-    "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; ^
-     $ProgressPreference = 'SilentlyContinue'; ^
-     Invoke-WebRequest -Uri '%PYTHON_URL%' -OutFile '%PYTHON_ZIP%'"
+    "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12;" ^
+    "$ProgressPreference = 'SilentlyContinue';" ^
+    "Invoke-WebRequest -Uri '%PYTHON_URL%' -OutFile '%PYTHON_ZIP%'"
 
 if not exist "%PYTHON_ZIP%" (
     echo.
@@ -67,17 +67,17 @@ if not exist "%PYTHON_DIR%\Lib\site-packages" (
 )
 
 powershell -NoProfile -ExecutionPolicy Bypass -Command ^
-    "$pthFiles = Get-ChildItem '%PYTHON_DIR%\python*._pth'; ^
-     if ($pthFiles.Count -gt 0) { ^
-         $pth = $pthFiles[0]; ^
-         $zipName = (Get-ChildItem '%PYTHON_DIR%\python*.zip' | Select-Object -First 1).Name; ^
-         if (-not $zipName) { $zipName = '{{PTH_ZIP_NAME}}' }; ^
-         $content = @($zipName, '.', 'Lib', 'Lib\site-packages', 'DLLs'{{PTH_EXTRA}}, '', 'import site'); ^
-         $content | Set-Content -Path $pth.FullName -Encoding ASCII; ^
-         Write-Host '   Configured:' $pth.Name ^
-     } else { ^
-         Write-Host 'WARNING: No ._pth file found' ^
-     }"
+    "$pthFiles = Get-ChildItem '%PYTHON_DIR%\python*._pth';" ^
+    "if ($pthFiles.Count -gt 0) {" ^
+    "  $pth = $pthFiles[0];" ^
+    "  $zipName = (Get-ChildItem '%PYTHON_DIR%\python*.zip' | Select-Object -First 1).Name;" ^
+    "  if (-not $zipName) { $zipName = '{{PTH_ZIP_NAME}}' };" ^
+    "  $content = @($zipName, '.', 'Lib', 'Lib\site-packages', 'DLLs'{{PTH_EXTRA}}, '', 'import site');" ^
+    "  $content | Set-Content -Path $pth.FullName -Encoding ASCII;" ^
+    "  Write-Host '   Configured:' $pth.Name" ^
+    "} else {" ^
+    "  Write-Host 'WARNING: No ._pth file found'" ^
+    "}"
 
 :: ============================================
 :: Step 3: Bootstrap pip (via get-pip.py)
@@ -87,9 +87,9 @@ powershell -NoProfile -ExecutionPolicy Bypass -Command ^
 if %errorlevel% neq 0 (
     echo [STEP] Downloading get-pip.py...
     powershell -NoProfile -ExecutionPolicy Bypass -Command ^
-        "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; ^
-         $ProgressPreference = 'SilentlyContinue'; ^
-         Invoke-WebRequest -Uri 'https://bootstrap.pypa.io/get-pip.py' -OutFile '%PYTHON_DIR%\get-pip.py'"
+        "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12;" ^
+        "$ProgressPreference = 'SilentlyContinue';" ^
+        "Invoke-WebRequest -Uri 'https://bootstrap.pypa.io/get-pip.py' -OutFile '%PYTHON_DIR%\get-pip.py'"
 
     if not exist "%PYTHON_DIR%\get-pip.py" (
         echo ERROR: Failed to download get-pip.py.

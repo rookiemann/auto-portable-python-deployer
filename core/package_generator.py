@@ -320,9 +320,9 @@ class PackageGenerator:
             '\n'
             '    echo   Downloading tcltk.msi...\n'
             '    powershell -NoProfile -ExecutionPolicy Bypass -Command ^\n'
-            '        "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; ^\n'
-            "         $ProgressPreference = 'SilentlyContinue'; ^\n"
-            "         Invoke-WebRequest -Uri '!TCLTK_MSI_URL!' -OutFile '!TCLTK_MSI!'\" \n"
+            '        "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12;" ^\n'
+            "        \"$ProgressPreference = 'SilentlyContinue';\" ^\n"
+            "        \"Invoke-WebRequest -Uri '!TCLTK_MSI_URL!' -OutFile '!TCLTK_MSI!'\"\n"
             '\n'
             '    if not exist "!TCLTK_MSI!" (\n'
             '        echo WARNING: Failed to download tcltk.msi. GUI may not work.\n'
@@ -385,9 +385,9 @@ class PackageGenerator:
             '\n'
             'echo [STEP] Downloading portable Git %GIT_VERSION%...\n'
             'powershell -NoProfile -ExecutionPolicy Bypass -Command ^\n'
-            '    "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; ^\n'
-            "     $ProgressPreference = 'SilentlyContinue'; ^\n"
-            "     Invoke-WebRequest -Uri '%GIT_URL%' -OutFile '%GIT_ZIP%'\"\n"
+            '    "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12;" ^\n'
+            "    \"$ProgressPreference = 'SilentlyContinue';\" ^\n"
+            "    \"Invoke-WebRequest -Uri '%GIT_URL%' -OutFile '%GIT_ZIP%'\"\n"
             '\n'
             'if not exist "%GIT_ZIP%" (\n'
             '    echo WARNING: Failed to download Git. Git features may not work.\n'
@@ -415,9 +415,9 @@ class PackageGenerator:
             '\n'
             'echo [STEP] Downloading portable FFmpeg...\n'
             'powershell -NoProfile -ExecutionPolicy Bypass -Command ^\n'
-            '    "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; ^\n'
-            "     $ProgressPreference = 'SilentlyContinue'; ^\n"
-            "     Invoke-WebRequest -Uri '%FFMPEG_URL%' -OutFile '%FFMPEG_ZIP%'\"\n"
+            '    "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12;" ^\n'
+            "    \"$ProgressPreference = 'SilentlyContinue';\" ^\n"
+            "    \"Invoke-WebRequest -Uri '%FFMPEG_URL%' -OutFile '%FFMPEG_ZIP%'\"\n"
             '\n'
             'if not exist "%FFMPEG_ZIP%" (\n'
             '    echo WARNING: Failed to download FFmpeg.\n'
@@ -426,17 +426,17 @@ class PackageGenerator:
             '\n'
             'echo [STEP] Extracting portable FFmpeg...\n'
             'powershell -NoProfile -ExecutionPolicy Bypass -Command ^\n'
-            "    \"$tempDir = '%SCRIPT_DIR%_ffmpeg_temp'; ^\n"
-            "     Expand-Archive -Path '%FFMPEG_ZIP%' -DestinationPath $tempDir -Force; ^\n"
-            '     $inner = Get-ChildItem $tempDir -Directory | Select-Object -First 1; ^\n'
-            "     if ($inner -and (Test-Path \\\"$($inner.FullName)\\bin\\\")) { ^\n"
-            "         New-Item -Path '%FFMPEG_DIR%\\bin' -ItemType Directory -Force | Out-Null; ^\n"
-            "         Copy-Item \\\"$($inner.FullName)\\bin\\*\\\" '%FFMPEG_DIR%\\bin\\' -Force; ^\n"
-            "         Write-Host '   Extracted FFmpeg to ffmpeg_portable\\bin\\' ^\n"
-            '     } else { ^\n'
-            "         Write-Host 'WARNING: FFmpeg zip has unexpected structure' ^\n"
-            '     }; ^\n'
-            "     Remove-Item $tempDir -Recurse -Force -ErrorAction SilentlyContinue\"\n"
+            "    \"$tempDir = '%SCRIPT_DIR%_ffmpeg_temp';\" ^\n"
+            "    \"Expand-Archive -Path '%FFMPEG_ZIP%' -DestinationPath $tempDir -Force;\" ^\n"
+            '    "$inner = Get-ChildItem $tempDir -Directory | Select-Object -First 1;" ^\n'
+            "    \"if ($inner -and (Test-Path (Join-Path $inner.FullName 'bin'))) {\" ^\n"
+            "    \"  New-Item -Path '%FFMPEG_DIR%\\bin' -ItemType Directory -Force | Out-Null;\" ^\n"
+            "    \"  Copy-Item (Join-Path $inner.FullName 'bin\\*') '%FFMPEG_DIR%\\bin\\' -Force;\" ^\n"
+            "    \"  Write-Host '   Extracted FFmpeg to ffmpeg_portable\\bin\\'\" ^\n"
+            '    "} else {" ^\n'
+            "    \"  Write-Host 'WARNING: FFmpeg zip has unexpected structure'\" ^\n"
+            '    "};\" ^\n'
+            "    \"Remove-Item $tempDir -Recurse -Force -ErrorAction SilentlyContinue\"\n"
             '\n'
             'del "%FFMPEG_ZIP%" 2>nul\n'
             ':ffmpeg_done\n\n'
